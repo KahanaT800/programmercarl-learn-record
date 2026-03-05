@@ -1,0 +1,31 @@
+.main {
+  max-width: 900px;
+}
+
+.post-content {
+  max-width: 100%;
+}
+
+.toc {
+  max-width: 100%;
+}
+
+/* 代码块美化 */
+.highlight {
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.2em 0;
+}
+
+.highlight pre {
+  padding: 1em 1.2em;
+  border-radius: 8px;
+  font-size: 0.9em;
+  line-height: 1.6;
+}
+
+.post-content pre code,
+.post-content code {
+  font-family: 'Source Code Pro', Menlo, Consolas, monospace;
+  font-size: 0.88em;
+}
