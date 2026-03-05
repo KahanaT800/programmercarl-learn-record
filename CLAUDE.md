@@ -6,6 +6,14 @@
 
 代码随想录算法刷题仓库，同时作为每日打卡博客使用。每天的打卡记录以 Markdown 文件形式保存。
 
+博客地址：https://kahanat800.github.io/programmercarl-learn-record/
+
+## 构建
+
+- 本地预览：`hugo server -D`
+- 构建：`hugo --minify`
+- 推送到 main 分支后 GitHub Actions 自动部署
+
 ## 项目结构
 
 - `README.md` — GitHub 仓库首页说明

@@ -2,6 +2,7 @@ baseURL = "https://kahanat800.github.io/programmercarl-learn-record/"
 languageCode = "zh-cn"
 title = "代码随想录刷题打卡"
 theme = "PaperMod"
+buildFuture = true
 
 [params]
   author = "KahanaT800"
