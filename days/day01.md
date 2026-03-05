@@ -107,7 +107,7 @@ public:
 - 链接：[力扣977](https://leetcode.cn/problems/squares-of-a-sorted-array/)
 - 文章：[代码随想录](https://programmercarl.com/0977.%E6%9C%89%E5%BA%8F%E6%95%B0%E7%BB%84%E7%9A%84%E5%B9%B3%E6%96%B9.html)
 - 视频：[B站讲解](https://www.bilibili.com/video/BV1QB4y1D7ep)
-- 状态：✅ / ⚠️ / ❌
+- 状态：✅
 
 ### 第一想法
 有序，说明最大值可能出现在两端；
