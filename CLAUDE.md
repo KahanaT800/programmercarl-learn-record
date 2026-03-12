@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-代码随想录算法刷题仓库，同时作为每日打卡博客和 CS 学习笔记使用。每天的打卡记录和学习笔记以 Markdown 文件形式保存。
+「木人的CS学习笔记」——算法刷题打卡 & CS 学习笔记博客。包含代码随想录每日打卡、算法深度笔记、操作系统八股深入等内容。
 
 博客地址：https://kahanat800.github.io/programmercarl-learn-record/
 
@@ -19,16 +19,35 @@
 - `README.md` — GitHub 仓库首页说明
 - `hugo.toml` — Hugo 配置文件
 - `template.md` — 每日打卡模板
-- `content/days/` — 存放每日打卡文件（如 `day01.md`、`day02.md`）
-- `content/notes/` — CS 学习笔记，按学科分子目录
-  - `os/` — 操作系统笔记
+- `content/` — 博客内容
+  - `days/` — 每日打卡文件（如 `day01.md`、`day02.md`）
+  - `notes/algo/` — 算法深度笔记（如 KMP 详解、Floyd 判环）
+  - `notes/os/` — OS 八股深入笔记
 - `drafts/` — 按代码随想录章节预写的题目草稿（不会被 Hugo 构建）
   - `题目模板.md` — 单题模板
   - `01-数组/` ~ `12-图论/` — 12 个章节目录，每个文件以序号前缀排列（如 `01-704-二分查找.md`），顺序与代码随想录课程一致
 - `themes/PaperMod/` — Hugo PaperMod 主题（git submodule）
-- `layouts/` — Hugo 模板覆盖（RSS 修复、KaTeX/字体引入）
-- `assets/css/extended/custom.css` — 自定义样式（内容宽度、代码块样式）
-- `.github/workflows/deploy.yml` — GitHub Actions 自动部署
+- `layouts/` — Hugo 模板覆盖
+  - `index.html` — 自定义首页（按板块分栏展示）
+  - `_default/terms.html` — 标签页（按数据结构/算法技巧/其他分组）
+  - `_default/rss.xml` — RSS 修复
+  - `partials/extend_head.html` — KaTeX 公式、字体引入
+- `assets/css/extended/custom.css` — 自定义样式（卡片式条目、首页布局、标签分组、代码块美化）
+- `.github/workflows/deploy.yml` — GitHub Actions 自动部署（含旧 deployment 清理）
+
+## 导航结构
+
+- 打卡记录 → `/days/`
+- 算法笔记 → `/notes/algo/`
+- OS 八股深入 → `/notes/os/`
+- 标签 → `/tags/`（按数据结构、算法技巧、其他分组）
+
+## 标签体系
+
+- **数据结构**：数组、链表、哈希表、字符串
+- **算法技巧**：二分查找、双指针、滑动窗口、前缀和、快慢指针、KMP
+- **其他**：操作系统
+- 新增标签时需同步更新 `layouts/_default/terms.html` 中的分组列表
 
 ## 编程语言
 
@@ -60,6 +79,7 @@
 
 1. 在 `content/notes/<学科>/` 下新建 `.md` 文件，填写 front matter 和正文
 2. 新增学科直接加子目录（如 `content/notes/network/`），并建 `_index.md`
+3. 深度分析可从 drafts 中提取为独立博客文章（如 KMP 详解从 strStr 草稿中提取）
 
 ## 笔记约定
 

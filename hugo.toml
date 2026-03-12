@@ -1,12 +1,14 @@
 baseURL = "https://kahanat800.github.io/programmercarl-learn-record/"
 languageCode = "zh-cn"
-title = "代码随想录刷题打卡"
+title = "木人的CS学习笔记"
 theme = "PaperMod"
 buildFuture = true
+[taxonomies]
+  tag = "tags"
 
 [params]
   author = "KahanaT800"
-  description = "每日算法练习打卡，跟随代码随想录刷题"
+  description = "算法刷题打卡 & CS 学习笔记"
   ShowToc = true
   TocOpen = true
   TocSide = "right"
@@ -15,9 +17,6 @@ buildFuture = true
   ShowBreadCrumbs = true
   defaultTheme = "auto"
 
-[params.homeInfoParams]
-  Title = "代码随想录刷题打卡"
-  Content = "每日算法练习打卡，跟随 [代码随想录](https://programmercarl.com/) 刷题。"
 
 [markup]
   [markup.highlight]
@@ -30,16 +29,16 @@ buildFuture = true
 
 [menu]
   [[menu.main]]
-    name = "首页"
-    url = "/"
-    weight = 1
-  [[menu.main]]
     name = "打卡记录"
     url = "/days/"
+    weight = 1
+  [[menu.main]]
+    name = "算法笔记"
+    url = "/notes/algo/"
     weight = 2
   [[menu.main]]
-    name = "CS笔记"
-    url = "/notes/"
+    name = "OS 八股深入"
+    url = "/notes/os/"
     weight = 3
   [[menu.main]]
     name = "标签"

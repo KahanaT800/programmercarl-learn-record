@@ -1,0 +1,62 @@
+{{- define "main" }}
+
+{{- if .Title }}
+<header class="page-header">
+    <h1>{{ .Title }}</h1>
+    {{- if .Description }}
+    <div class="post-description">
+        {{ .Description }}
+    </div>
+    {{- end }}
+</header>
+{{- end }}
+
+{{- $type := .Type }}
+{{- $dsNames := slice "数组" "链表" "哈希表" "字符串" }}
+{{- $algoNames := slice "二分查找" "双指针" "滑动窗口" "前缀和" "快慢指针" "kmp" }}
+{{- $displayNames := dict "kmp" "KMP" }}
+
+{{- $ds := slice }}
+{{- $algo := slice }}
+{{- $other := slice }}
+
+{{- range $key, $value := .Data.Terms.Alphabetical }}
+  {{- $name := .Name }}
+  {{- $count := .Count }}
+  {{- $term := site.GetPage (printf "/%s/%s" $type $name) }}
+  {{- if $term }}
+    {{- $display := index $displayNames $name | default $name }}
+    {{- $entry := dict "name" $display "count" $count "permalink" $term.Permalink }}
+    {{- $lower := $name | lower }}
+    {{- if in $dsNames $lower }}
+      {{- $ds = $ds | append $entry }}
+    {{- else if in $algoNames $lower }}
+      {{- $algo = $algo | append $entry }}
+    {{- else }}
+      {{- $other = $other | append $entry }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+{{- $groups := slice
+  (dict "title" "数据结构" "tags" $ds)
+  (dict "title" "算法技巧" "tags" $algo)
+  (dict "title" "其他" "tags" $other)
+}}
+
+{{- range $groups }}
+{{- if .tags }}
+<section class="tags-group">
+  <h2 class="tags-group-title">{{ .title }}</h2>
+  <ul class="terms-tags">
+    {{- range .tags }}
+    <li>
+      <a href="{{ .permalink }}">{{ .name }} <sup><strong><sup>{{ .count }}</sup></strong></sup></a>
+    </li>
+    {{- end }}
+  </ul>
+</section>
+{{- end }}
+{{- end }}
+
+{{- end }}{{/* end main */ -}}
