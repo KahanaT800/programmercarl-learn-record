@@ -10,7 +10,7 @@
 
 ## 构建
 
-- 本地预览：`hugo server -D`
+- 本地预览：`hugo server -D --baseURL http://localhost:1313/`（必须加 `--baseURL` 覆盖线上地址，否则链接会跳转到 GitHub Pages）
 - 构建：`hugo --minify`
 - 推送到 main 分支后 GitHub Actions 自动部署
 
@@ -32,8 +32,10 @@
   - `index.html` — 自定义首页（按板块分栏展示）
   - `_default/terms.html` — 标签页（按数据结构/算法技巧/其他分组）
   - `_default/rss.xml` — RSS 修复
-  - `partials/extend_head.html` — KaTeX 公式、字体引入
-- `assets/css/extended/custom.css` — 自定义样式（卡片式条目、首页布局、标签分组、代码块美化）
+  - `_default/single.html` — 自定义文章页（TOC 左侧栏布局）
+  - `_default/_markup/render-codeblock-mermaid.html` — Mermaid 图表渲染钩子
+  - `partials/extend_head.html` — KaTeX 公式、Mermaid 图表、字体引入
+- `assets/css/extended/custom.css` — 自定义样式（卡片式条目、首页布局、标签分组、代码块美化、TOC 左侧栏）
 - `.github/workflows/deploy.yml` — GitHub Actions 自动部署（含旧 deployment 清理）
 
 ## 导航结构
@@ -90,6 +92,7 @@
 - OS 笔记写作时需主动搜索网上资源（特别是 Linux 内核源码、man pages、LKML 邮件列表、LWN 文章）确保技术细节准确
 - 展示映射/对照关系用 Markdown 表格，不要用代码块（代码块等宽字体渲染中文很丑）
 - 代码块只用于真正的代码
+- 流程图、时序图等用 Mermaid（` ```mermaid ` 代码块），不要用 ASCII 图（等宽字体渲染容易错位）
 
 ## drafts 文件命名规则
 
