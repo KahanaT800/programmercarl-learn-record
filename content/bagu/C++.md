@@ -810,3 +810,211 @@ public:
 - **`const T&`可以绑定右值**：这就是C++98中`void f(const string& s)`能接受临时字符串的原因，但只能读不能移动；
 - **右值引用变量本身是左值**：`T&& x = ...;`之后，`x`本身有名字、有地址，是左值。要再次当右值传递需要`std::move(x)`；
 - **万能引用（universal reference）**：`template<typename T> void f(T&& x)`中的`T&&`不是右值引用，而是万能引用，通过引用折叠规则既能绑定左值也能绑定右值，配合`std::forward<T>(x)`实现完美转发；
+
+## 说一下lambda函数
+
+### 是什么
+Lambda是C++11引入的匿名函数，允许在需要函数对象的地方就地定义函数行为，无需单独声明具名函数。
+
+### 语法
+```cpp
+[捕获列表](参数列表) -> 返回类型 { 函数体 }
+```
+其中返回类型通常可以省略，由编译器自动推导。
+
+### 捕获列表
+捕获列表决定了lambda如何访问外部作用域的变量：
+
+| 写法 | 含义 |
+|---|---|
+| `[]` | 不捕获任何变量 |
+| `[x]` | 值捕获x（拷贝，lambda内部不可修改，除非加`mutable`） |
+| `[&x]` | 引用捕获x（可修改原变量） |
+| `[=]` | 值捕获所有外部变量 |
+| `[&]` | 引用捕获所有外部变量 |
+| `[=, &x]` | 默认值捕获，但x引用捕获 |
+| `[this]` | 捕获当前对象的this指针 |
+
+### 值捕获与mutable
+值捕获默认是`const`的，lambda内部不能修改捕获的副本。加上`mutable`关键字可以修改副本（但不影响外部原变量）：
+```cpp
+int x = 10;
+auto f = [x]() mutable { x++; return x; };
+f();   // 返回 11
+// x 仍然是 10（修改的是副本）
+```
+
+### 底层原理
+编译器将lambda转换为一个**匿名仿函数类（functor）**：
+```cpp
+// 这个 lambda：
+auto f = [x, &y](int a) { return x + y + a; };
+
+// 编译器大致生成：
+class __lambda_123 {
+    int x;      // 值捕获 → 成员变量
+    int& y;     // 引用捕获 → 引用成员
+public:
+    __lambda_123(int x, int& y) : x(x), y(y) {}
+    int operator()(int a) const { return x + y + a; }
+};
+auto f = __lambda_123(x, y);
+```
+所以lambda本质就是一个重载了`operator()`的匿名类的对象。
+
+### 常见用途
+- **STL算法回调**：`std::sort(v.begin(), v.end(), [](int a, int b) { return a > b; });`
+- **异步/线程**：`std::thread t([&]() { /* 任务 */ });`
+- **就地定义简短逻辑**：避免为只用一次的逻辑单独写具名函数；
+
+### 与std::function的关系
+- 每个lambda都有独立的匿名类型，不同lambda类型不同，不能互相赋值；
+- `std::function<返回类型(参数类型)>`可以统一包装lambda、函数指针、仿函数等任何可调用对象，但有类型擦除和堆分配的开销；
+- 能用`auto`接收lambda就用`auto`，需要存储或传递不同类型的可调用对象时才用`std::function`
+
+## C++如何实现一个单例模式
+## C++如何实现一个单例模式
+
+单例模式确保一个类只有一个实例，并提供全局访问点。实现要点：私有化构造函数、删除拷贝构造和拷贝赋值、提供静态`getInstance`方法。
+
+### 推荐写法：Meyers' Singleton（C++11起线程安全的懒汉式）
+```cpp
+class Singleton {
+public:
+    static Singleton& getInstance() {
+        static Singleton instance;  // C++11保证局部静态变量初始化是线程安全的
+        return instance;
+    }
+
+    Singleton(const Singleton&) = delete;
+    Singleton& operator=(const Singleton&) = delete;
+
+private:
+    Singleton() {}   // 私有构造
+    ~Singleton() {}  // 私有析构
+};
+```
+这是现代C++中最推荐的写法。C++11标准保证局部静态变量在首次执行到声明语句时初始化，且该初始化过程是线程安全的（编译器会自动加锁），所以不需要手动加锁。
+
+### 饿汉式
+```cpp
+class Singleton {
+public:
+    static Singleton& getInstance() {
+        return instance;
+    }
+
+    Singleton(const Singleton&) = delete;
+    Singleton& operator=(const Singleton&) = delete;
+
+private:
+    Singleton() {}
+    static Singleton instance;  // 程序启动时（main之前）就创建
+};
+
+Singleton Singleton::instance;  // 类外定义
+```
+优点是实现简单，天然线程安全（`main`之前单线程初始化）。缺点是无论是否使用都会创建实例，且多个饿汉式单例之间的初始化顺序不确定（**静态初始化顺序问题**），跨翻译单元时可能导致使用未初始化的对象。
+
+### 传统懒汉式（双重检查锁，了解即可）
+```cpp
+class Singleton {
+public:
+    static Singleton* getInstance() {
+        if (instance == nullptr) {                    // 第一次检查，避免每次都加锁
+            std::lock_guard<std::mutex> lock(mtx);
+            if (instance == nullptr) {                // 第二次检查，防止重复创建
+                instance = new Singleton();
+            }
+        }
+        return instance;
+    }
+
+private:
+    Singleton() {}
+    static std::atomic<Singleton*> instance;
+    static std::mutex mtx;
+};
+```
+注意`instance`必须是`std::atomic`或配合内存屏障使用，否则在某些CPU架构上存在指令重排问题。这种写法在C++11之后已经没有必要，Meyers' Singleton更简洁安全。
+
+### 面试常见追问
+- **为什么Meyers' Singleton线程安全**：C++11标准§6.7规定局部静态变量的初始化必须是线程安全的，编译器负责生成同步代码；
+- **为什么要删除拷贝构造和赋值**：防止通过`Singleton s2 = Singleton::getInstance()`创建副本，破坏唯一性；
+- **单例的缺点**：本质是全局状态，增加耦合，难以单元测试，依赖关系隐式；
+
+## 什么是菱形继承
+
+### 问题
+多继承中，两个派生类继承同一个基类，再有一个最派生类同时继承这两个派生类，形成菱形结构：
+```text
+  Base
+  /  \
+ D1   D2
+  \  /
+  Final
+```
+此时`Final`中包含**两份`Base`的成员**（分别从D1和D2各继承一份），导致两个问题：访问`Base`成员时产生**二义性**（编译器不知道用哪一份），以及**空间浪费**（同一个基类的数据存了两份）。
+
+### 解决方案：虚继承
+```cpp
+class Base { public: int x; };
+class D1 : virtual public Base {};  // 虚继承
+class D2 : virtual public Base {};  // 虚继承
+class Final : public D1, public D2 {};  // Base 只有一份
+```
+虚继承确保无论继承路径有多少条，`Base`在`Final`中只存在一份。
+
+### 虚继承的实现原理
+- 虚继承的派生类不再直接包含虚基类的成员，而是通过一个**虚基类指针（vbptr）**或虚表中的偏移量间接访问；
+- 虚基类的子对象被放置在最派生类对象的末尾，由最派生类的构造函数负责初始化（而非中间派生类）；
+- 代价：每个虚继承的派生类多一个指针开销，访问虚基类成员多一次间接寻址；
+
+## C++中的多线程同步机制
+
+### 互斥锁（Mutex）
+- `std::mutex`：最基本的互斥锁，`lock()`/`unlock()`确保同一时刻只有一个线程访问共享资源；
+- 实践中应使用RAII封装：`std::lock_guard<std::mutex>`（作用域自动加锁解锁）或`std::unique_lock<std::mutex>`（支持手动控制、延迟加锁、配合条件变量）；
+
+### 条件变量（Condition Variable）
+- `std::condition_variable`：让线程等待某个条件成立，条件满足时被唤醒；
+- 必须配合`std::unique_lock<std::mutex>`使用；
+- `wait(lock, predicate)`：释放锁并阻塞，被唤醒后重新获取锁并检查predicate，防止**虚假唤醒（spurious wakeup）**；
+- `notify_one()`唤醒一个等待线程，`notify_all()`唤醒所有；
+
+### 原子操作（Atomic）
+- `std::atomic<T>`：提供无锁的原子读写操作，适合简单的计数器、标志位等场景；
+- 比互斥锁轻量，但只适用于单个变量的简单操作，复杂的多变量一致性仍需互斥锁；
+
+### 读写锁（C++17）
+- `std::shared_mutex`：读多写少场景下，多个读线程可以同时持有`std::shared_lock`（共享锁），写线程持有`std::unique_lock`（独占锁）；
+
+## 如何在C++中创建和管理线程
+
+### 基本流程
+```cpp
+#include <thread>
+
+void task(int id) {
+    // 线程执行的任务
+}
+
+int main() {
+    std::thread t(task, 42);  // 创建并立即启动线程，传入函数和参数
+
+    // 必须二选一，否则析构时调用 std::terminate 导致程序终止：
+    t.join();    // 阻塞等待线程结束
+    // 或
+    t.detach();  // 分离线程，后台运行，不再同步
+}
+```
+
+### 线程函数的传参
+- 默认按值拷贝传递参数，即使函数签名是引用；
+- 要传引用必须用`std::ref(x)`包装，否则线程内修改不会影响原变量；
+- 可以传lambda、成员函数指针、仿函数等任何可调用对象；
+
+### 注意事项
+- `join()`和`detach()`只能调用一次，调用前用`joinable()`检查；
+- `detach()`后线程生命周期独立于创建者，需确保线程访问的数据在线程结束前不被销毁；
+- C++20引入`std::jthread`：析构时自动`join()`，支持协作式取消（`std::stop_token`），更安全；
